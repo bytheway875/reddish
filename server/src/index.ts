@@ -1,6 +1,5 @@
 import "reflect-metadata";
-// import { MikroORM } from "@mikro-orm/core";
-// import mikroConfig from "./mikro-orm.config";
+import "dotenv-safe/config";
 import express from "express";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
@@ -23,11 +22,9 @@ import { createUpvoteLoader } from "./utils/createUpvoteLoader";
 const main = async () => {
   const conn = await createConnection({
     type: "postgres",
-    database: "lireddit2",
-    username: "shannonbyrne",
-    password: "",
+    url: process.env.DATABASE_URL,
     logging: true,
-    synchronize: !__prod__,
+    // synchronize: !__prod__,
     migrations: [path.join(__dirname, "./migrations/*")],
     entities: [Post, User, Upvote],
   });
@@ -43,14 +40,14 @@ const main = async () => {
 
   app.use(
     cors({
-      origin: "http://localhost:3000",
+      origin: process.env.CLIENT_ORIGIN,
       credentials: true,
     })
   );
 
   const redisStore = connectRedis(session);
-  const redis = new Redis();
-
+  const redis = new Redis(process.env.REDIS_URL);
+  app.set("proxy", 1);
   app.use(
     session({
       name: SESSION_COOKIE,
@@ -65,7 +62,7 @@ const main = async () => {
         secure: __prod__, // cookie only works in https
       },
       saveUninitialized: false,
-      secret: "asdfsadfsdfjjkdsjkfdsjfsdjkfsjkhfsd",
+      secret: process.env.SESSION_SECRET,
       resave: false,
     })
   );
@@ -88,8 +85,8 @@ const main = async () => {
     app,
     cors: false,
   });
-  app.listen(4000, () => {
-    console.log("server started on localhost:4000");
+  app.listen(parseInt(process.env.PORT), () => {
+    console.log(`server started on port ${process.env.PORT}`);
   });
 };
 

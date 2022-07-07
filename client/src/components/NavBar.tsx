@@ -3,6 +3,7 @@ import { Box, Link, Flex, Button, Icon, Heading } from "@chakra-ui/core";
 import NextLink from "next/link";
 import { useMeQuery, useLogoutMutation } from "../generated/graphql";
 import { isServer } from "../utils/isServer";
+import { useRouter } from "next/router";
 interface NavBarProps {}
 
 const NavBar: React.FC<NavBarProps> = ({}) => {

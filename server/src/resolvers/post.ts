@@ -43,11 +43,8 @@ export class PostResolver {
   }
 
   @FieldResolver(() => User)
-  creator(
-    @Root() post: Post,
-    @Ctx() { userLoader }: MyContext
-  ) {
-    return userLoader.load(post.creatorId)
+  creator(@Root() post: Post, @Ctx() { userLoader }: MyContext) {
+    return userLoader.load(post.creatorId);
   }
 
   @FieldResolver(() => Int, { nullable: true })
@@ -56,17 +53,19 @@ export class PostResolver {
     @Ctx() { upvoteLoader, req }: MyContext
   ) {
     if (!req.session.userId) {
-      return null
+      return null;
     }
-    const upvote = await upvoteLoader.load({postId: post.id, userId: req.session.userId})
+    const upvote = await upvoteLoader.load({
+      postId: post.id,
+      userId: req.session.userId,
+    });
     return upvote ? upvote.value : null;
   }
 
   @Query(() => PaginatedPosts)
   async posts(
     @Arg("limit", () => Int) limit: number,
-    @Arg("cursor", () => String, { nullable: true }) cursor: string | null,
-    @Ctx() { req }: MyContext
+    @Arg("cursor", () => String, { nullable: true }) cursor: string | null
   ): Promise<PaginatedPosts> {
     const realLimit = Math.min(50, limit);
     const realLimitPlusOne = realLimit + 1;
@@ -89,7 +88,7 @@ export class PostResolver {
 
     // const posts = await getConnection().query(
     //   `
-    //   select p.*, 
+    //   select p.*,
     //   ${
     //     req.session.userId
     //       ? '(select value from upvote where "userId" = $2 and "postId" = p.id) "voteStatus"'
@@ -142,17 +141,20 @@ export class PostResolver {
   async updatePost(
     @Arg("id", () => Int) id: number,
     @Arg("title") title: string,
-    @Arg("text") text: string
+    @Arg("text") text: string,
     @Ctx() { req }: MyContext
   ): Promise<Post | null> {
     const response = await getConnection()
       .createQueryBuilder()
       .update(Post)
-      .set( { title, text })
-      .where('id = :id AND "creatorId" = :creatorId', { id, creatorId: req.session.userId })
+      .set({ title, text })
+      .where('id = :id AND "creatorId" = :creatorId', {
+        id,
+        creatorId: req.session.userId,
+      })
       .returning("*")
       .execute();
-    
+
     return response.raw[0] as any;
   }
 
